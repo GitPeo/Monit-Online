@@ -12,6 +12,49 @@
   <!-- 页面内容 -->
   <article class="flex-col-between p-3 pt-8">
     <section class="scrollable space-y-2">
+      <!-- 配置文件编辑区域 -->
+      <div class="space-y-2">
+        <!-- baseUrl 配置 -->
+        <p class="flex-row-between w-full gap-2">
+          <input 
+            v-model="config.baseUrl"
+            type="text" 
+            :placeholder="config.baseUrl ? `已保存: ${config.baseUrl}` : '请输入 Base URL'"
+            class="btn btn-md btn-outline basis-2/3 text-left"
+          />
+        </p>
+        
+        <!-- post 配置 -->
+        <p class="flex-row-between w-full gap-2">
+          <input 
+            v-model="config.post"
+            type="text" 
+            :placeholder="config.post ? `已保存: ${config.post}` : '请输入 Post'"
+            class="btn btn-md btn-outline basis-2/3 text-left"
+          />
+        </p>
+        
+        <!-- token 配置 -->
+        <p class="flex-row-between w-full gap-2">
+          <input 
+            v-model="config.token"
+            type="password" 
+            :placeholder="config.token ? `已保存: ${'*'.repeat(config.token.length)}` : '请输入 Token'"
+            class="btn btn-md btn-outline basis-2/3 text-left"
+          />
+        </p>
+        
+        <!-- 保存按钮 -->
+        <p class="flex-row-between w-full">
+          <button 
+            class="btn btn-md btn-green w-full"
+            @click="saveConfig"
+          >
+            💾 保存配置
+          </button>
+        </p>
+      </div>
+
       <!-- 插件操作 -->
       <p class="flex-row-between gap-2">
         <button class="btn btn-md btn-blue basis-2/3" @click="sendEvent('plugin-create', pluginNames)">全部开启</button>
@@ -69,7 +112,7 @@
 import { reactive } from 'vue'
 
 import { pluginList } from '~/config/plugin'
-import { callEvent, sendEvent } from '~/event/send'
+import { callEvent, sendEvent, setValue, getValue } from '~/event/send'
 import { storage } from '~/lib/storage'
 
 import Setting from '@/components/setting.vue'
@@ -82,19 +125,57 @@ const state = reactive({
   switch: true // 自启开关
 })
 
+// 配置信息
+const config = reactive({
+  baseUrl: '',
+  post: '',
+  token: ''
+})
+
+// 加载已保存的配置
+const loadConfig = () => {
+  config.baseUrl = getValue('baseUrl') || ''
+  config.post = getValue('post') || ''
+  config.token = getValue('token') || ''
+}
+
+// 程序启动时加载配置
+loadConfig()
+
 // 存储数据
 const store = storage(
   {
     auto: false,
-    boot: []
+    boot: [],
+    config: {
+      baseUrl: '',
+      post: '',
+      token: ''
+    }
   },
   {
     // 自启修改
     auto: (val) => {
       sendEvent('app-boot', val)
+    },
+    // 配置修改
+    config: (val) => {
+      Object.assign(config, val)
     }
   }
 )
+
+// 初始化配置
+Object.assign(config, store.config || {})
+
+// 保存配置
+const saveConfig = () => {
+  // 分别保存每个配置项
+  setValue('baseUrl', config.baseUrl)
+  setValue('post', config.post)
+  setValue('token', config.token)
+
+}
 
 // 配置项
 const setting = reactive([
