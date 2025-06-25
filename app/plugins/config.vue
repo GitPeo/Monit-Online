@@ -17,9 +17,9 @@
         <!-- baseUrl 配置 -->
         <p class="flex-row-between w-full gap-2">
           <input 
-            v-model="config.baseUrl"
+            v-model="store.config.baseUrl"
             type="text" 
-            :placeholder="config.baseUrl ? `已保存: ${config.baseUrl}` : '请输入 Base URL'"
+            :placeholder="store.config.baseUrl ? `已保存: ${store.config.baseUrl}` : '请输入 Base URL'"
             class="btn btn-md btn-outline basis-2/3 text-left"
           />
         </p>
@@ -27,9 +27,9 @@
         <!-- post 配置 -->
         <p class="flex-row-between w-full gap-2">
           <input 
-            v-model="config.post"
+            v-model="store.config.post"
             type="text" 
-            :placeholder="config.post ? `已保存: ${config.post}` : '请输入 Post'"
+            :placeholder="store.config.post ? `已保存: ${store.config.post}` : '请输入 Post'"
             class="btn btn-md btn-outline basis-2/3 text-left"
           />
         </p>
@@ -37,22 +37,22 @@
         <!-- token 配置 -->
         <p class="flex-row-between w-full gap-2">
           <input 
-            v-model="config.token"
+            v-model="store.config.token"
             type="password" 
-            :placeholder="config.token ? `已保存: ${'*'.repeat(config.token.length)}` : '请输入 Token'"
+            :placeholder="store.config.token ? `已保存: ${'*'.repeat(store.config.token.length)}` : '请输入 Token'"
             class="btn btn-md btn-outline basis-2/3 text-left"
           />
         </p>
         
         <!-- 保存按钮 -->
-        <p class="flex-row-between w-full">
+        <!-- <p class="flex-row-between w-full">
           <button 
             class="btn btn-md btn-green w-full"
             @click="saveConfig"
           >
             💾 保存配置
           </button>
-        </p>
+        </p> -->
       </div>
 
       <!-- 插件操作 -->
@@ -125,26 +125,8 @@ const state = reactive({
   switch: true // 自启开关
 })
 
-// 配置信息
-const config = reactive({
-  baseUrl: '',
-  post: '',
-  token: ''
-})
-
-// 加载已保存的配置
-const loadConfig = () => {
-  config.baseUrl = getValue('baseUrl') || ''
-  config.post = getValue('post') || ''
-  config.token = getValue('token') || ''
-}
-
-// 程序启动时加载配置
-loadConfig()
-
 // 存储数据
-const store = storage(
-  {
+const store = storage({
     auto: false,
     boot: [],
     config: {
@@ -158,24 +140,8 @@ const store = storage(
     auto: (val) => {
       sendEvent('app-boot', val)
     },
-    // 配置修改
-    config: (val) => {
-      Object.assign(config, val)
-    }
   }
 )
-
-// 初始化配置
-Object.assign(config, store.config || {})
-
-// 保存配置
-const saveConfig = () => {
-  // 分别保存每个配置项
-  setValue('baseUrl', config.baseUrl)
-  setValue('post', config.post)
-  setValue('token', config.token)
-
-}
 
 // 配置项
 const setting = reactive([
