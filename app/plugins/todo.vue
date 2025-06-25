@@ -45,10 +45,15 @@ const todo = ref('')
 const store = storage({
   // 代办数据
   todos: [
-    { title: '吃饭', checked: false },
-    { title: '睡觉', checked: false },
-    { title: '写代码', checked: true }
-  ]
+    { title: '吃饭', checked: false, id: 1 },
+    { title: '睡觉', checked: false, id: 2 },
+    { title: '写代码', checked: true, id: 3 }
+  ],
+  config: {
+    baseUrl: '',
+    post: '',
+    token: ''
+  }
 })
 
 // 增加代办
@@ -58,14 +63,71 @@ const add = () => {
   // 插入代办列表
   store.todos.push({
     title: todo.value,
-    checked: false
-  })
+    checked: false,
+    id: Date.now()
+  }) 
+  // 推送到服务端
+  pushToServer()
   // 清空代办消息
   todo.value = ''
+ 
 }
 
 // 删除代办
 const remove = (index) => {
   store.todos.splice(index, 1)
+}
+
+// 生成请求头
+const getHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+  
+  if (store.config.token) {
+    headers['Authorization'] = `Bearer ${store.config.token}`
+  }
+  
+  return headers
+}
+
+// 推送数据到服务端
+const pushToServer = async () => {
+  const config = store.config
+  
+  // if (!config.baseUrl || !config.token) {
+  //   updateSyncStatus('配置缺失', 'bg-yellow-400')
+  //   return false
+  // }
+
+  // if (!isOnline()) {
+  //   updateSyncStatus('网络断开', 'bg-red-400')
+  //   needRetrySync.value = true
+  //   return false
+  // }
+
+  try {
+    // updateSyncStatus('推送中...', 'bg-blue-400')
+    
+    const response = await fetch(`http://${config.baseUrl}:${config.post}/api`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(store.todos)
+    })
+
+    if (response.ok) {
+      // updateSyncStatus('推送成功', 'bg-green-400')
+      // updateLastSyncTime()
+      // needRetrySync.value = false
+      return true
+    } else {
+      throw new Error(`HTTP ${response.status}`)
+    }
+  } catch (error) {
+    console.error('推送失败:', error)
+    // updateSyncStatus('推送失败', 'bg-red-400')
+    // needRetrySync.value = true
+    return false
+  }
 }
 </script>
