@@ -19,6 +19,12 @@ main
             :class='element.checked ? "line-through text-secondary" : "text-primary"')
           DeleteSVG.btn-svg.w-6.text-rose-400(class='hover:text-rose-500', @click='remove(index)')
           MoveSVG.btn-svg.handle.w-7.text-purple-400(class='hover:text-purple-500')
+    // 同步状态指示器
+    .flex-row-center.mt-10.text-xs.text-gray-500
+      .flex-row-center.gap-1
+        .w-2.h-2.rounded-full(:class="syncStatus.color")
+        span {{ syncStatus.text }}
+        span.text-gray-400(v-if="lastSyncTime") | {{ lastSyncTime }}
     footer.flex-row-between.border-theme.border-t-2.pt-2
       input.mr-2.accent-purple-500(type='checkbox')
       input.text-primary.mr-2.w-full.bg-transparent.text-sm.outline-none(
@@ -41,6 +47,15 @@ import MoveSVG from '@/assets/plugin/todo/move.svg'
 // 代办消息
 const todo = ref('')
 
+// 同步状态
+const syncStatus = ref({
+  text: '未同步',
+  color: 'bg-gray-400'
+})
+
+// 最后同步时间
+const lastSyncTime = ref('')
+
 // 数据存储
 const store = storage({
   // 代办数据
@@ -55,6 +70,22 @@ const store = storage({
     token: ''
   }
 })
+
+// 检查网络连接
+const isOnline = () => {
+  return navigator.onLine
+}
+
+// 更新同步状态
+const updateSyncStatus = (text, color) => {
+  syncStatus.value = { text, color }
+}
+
+// 更新最后同步时间
+const updateLastSyncTime = () => {
+  const now = new Date()
+  lastSyncTime.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+}
 
 // 增加代办
 const add = () => {
@@ -95,19 +126,19 @@ const getHeaders = () => {
 const pushToServer = async () => {
   const config = store.config
   
-  // if (!config.baseUrl || !config.token) {
-  //   updateSyncStatus('配置缺失', 'bg-yellow-400')
-  //   return false
-  // }
+  if (!config.baseUrl || !config.token) {
+    updateSyncStatus('配置缺失', 'bg-yellow-400')
+    return false
+  }
 
-  // if (!isOnline()) {
-  //   updateSyncStatus('网络断开', 'bg-red-400')
-  //   needRetrySync.value = true
-  //   return false
-  // }
+  if (!isOnline()) {
+    updateSyncStatus('网络断开', 'bg-red-400')
+    // needRetrySync.value = true
+    return false
+  }
 
   try {
-    // updateSyncStatus('推送中...', 'bg-blue-400')
+    updateSyncStatus('推送中...', 'bg-blue-400')
     
     const response = await fetch(`http://${config.baseUrl}:${config.post}/api`, {
       method: 'POST',
@@ -116,8 +147,8 @@ const pushToServer = async () => {
     })
 
     if (response.ok) {
-      // updateSyncStatus('推送成功', 'bg-green-400')
-      // updateLastSyncTime()
+      updateSyncStatus('推送成功', 'bg-green-400')
+      updateLastSyncTime()
       // needRetrySync.value = false
       return true
     } else {
@@ -125,7 +156,7 @@ const pushToServer = async () => {
     }
   } catch (error) {
     console.error('推送失败:', error)
-    // updateSyncStatus('推送失败', 'bg-red-400')
+    updateSyncStatus('推送失败', 'bg-red-400')
     // needRetrySync.value = true
     return false
   }
