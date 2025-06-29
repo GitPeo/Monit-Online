@@ -12,49 +12,6 @@
   <!-- 页面内容 -->
   <article class="flex-col-between p-3 pt-8">
     <section class="scrollable space-y-2">
-      <!-- 配置文件编辑区域 -->
-      <div class="space-y-2">
-        <!-- baseUrl 配置 -->
-        <p class="flex-row-between w-full gap-2">
-          <input 
-            v-model="store.config.baseUrl"
-            type="text" 
-            :placeholder="store.config.baseUrl ? `已保存: ${store.config.baseUrl}` : '请输入 Base URL'"
-            class="btn btn-md btn-outline basis-2/3 text-left"
-          />
-        </p>
-        
-        <!-- post 配置 -->
-        <p class="flex-row-between w-full gap-2">
-          <input 
-            v-model="store.config.post"
-            type="text" 
-            :placeholder="store.config.post ? `已保存: ${store.config.post}` : '请输入 Post'"
-            class="btn btn-md btn-outline basis-2/3 text-left"
-          />
-        </p>
-        
-        <!-- token 配置 -->
-        <p class="flex-row-between w-full gap-2">
-          <input 
-            v-model="store.config.token"
-            type="password" 
-            :placeholder="store.config.token ? `已保存: ${'*'.repeat(store.config.token.length)}` : '请输入 Token'"
-            class="btn btn-md btn-outline basis-2/3 text-left"
-          />
-        </p>
-        
-        <!-- 保存按钮 -->
-        <!-- <p class="flex-row-between w-full">
-          <button 
-            class="btn btn-md btn-green w-full"
-            @click="saveConfig"
-          >
-            💾 保存配置
-          </button>
-        </p> -->
-      </div>
-
       <!-- 插件操作 -->
       <p class="flex-row-between gap-2">
         <button class="btn btn-md btn-blue basis-2/3" @click="sendEvent('plugin-create', pluginNames)">全部开启</button>
@@ -112,7 +69,7 @@
 import { reactive } from 'vue'
 
 import { pluginList } from '~/config/plugin'
-import { callEvent, sendEvent, setValue, getValue } from '~/event/send'
+import { callEvent, sendEvent } from '~/event/send'
 import { storage } from '~/lib/storage'
 
 import Setting from '@/components/setting.vue'
@@ -128,12 +85,7 @@ const state = reactive({
 // 存储数据
 const store = storage({
     auto: false,
-    boot: [],
-    config: {
-      baseUrl: '',
-      post: '',
-      token: ''
-    }
+    boot: []
   },
   {
     // 自启修改

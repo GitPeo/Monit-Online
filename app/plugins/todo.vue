@@ -29,13 +29,13 @@ main
       input.mr-2.accent-purple-500(type='checkbox')
       input.text-primary.mr-2.w-full.bg-transparent.text-sm.outline-none(
         v-model='todo',
-        @keyup.enter='pullFromServer',
+        @keyup.enter='add',
         type='text')
       AddSVG.btn-svg.mr-2.w-5.text-cyan-400(class='hover:text-cyan-500', @click='add')
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import draggable from 'vuedraggable'
 
 import { storage } from '~/lib/storage'
@@ -60,8 +60,8 @@ const lastSyncTime = ref('')
 const store = storage({
   // 代办数据
   todos: [
-    { title: '吃饭', checked: false, id: 1, order: "a", version: 1, deleted: false },
-    { title: '睡觉', checked: false, id: 2, order: "b", version: 2, deleted: false }
+    { title: '吃饭', checked: false, tid: 1, order: "a", version: 1, deleted: false },
+    { title: '睡觉', checked: false, tid: 2, order: "b", version: 2, deleted: false }
   ],
   config: {
     baseUrl: '',
@@ -103,7 +103,7 @@ const add = () => {
   store.todos.push({
     title: todo.value,
     checked: false,
-    id: Date.now(),
+    tid: Date.now(),
     order: "e",
     version: Date.now(),
     deleted: false
@@ -119,6 +119,7 @@ const add = () => {
 const remove = (index) => {
   store.todos[index].deleted = true
   store.todos[index].version = Date.now()
+  pushToServer()
 }
 
 // 生成请求头
@@ -152,7 +153,7 @@ const pullFromServer = async () => {
   try {
     updateSyncStatus('同步中...', 'bg-blue-400')
     
-    const response = await fetch(`http://${config.baseUrl}:${config.post}/api`, {
+    const response = await fetch(`http://${config.baseUrl}:${config.post}/api/fetch`, {
       method: 'GET',
       headers: getHeaders()
     })
@@ -162,7 +163,6 @@ const pullFromServer = async () => {
       if (Array.isArray(serverTodos.todos)) {
         store.todos = serverTodos.todos
       }
-      console.log(store.todos)
       updateSyncStatus('同步成功', 'bg-green-400')
       updateLastSyncTime()
       needRetrySync.value = false
@@ -195,8 +195,8 @@ const pushToServer = async () => {
 
   try {
     updateSyncStatus('推送中...', 'bg-blue-400')
-    
-    const response = await fetch(`http://${config.baseUrl}:${config.post}/api`, {
+    console.log(JSON.stringify(store.todos))
+    const response = await fetch(`http://${config.baseUrl}:${config.post}/api/update`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(store.todos)
@@ -233,20 +233,31 @@ const startSyncTimer = () => {
 }
 
 // 组件挂载时
-// onMounted(() => {
-//   // 初始同步
-//   pullFromServer()
+onMounted(() => {
+  // 初始同步
+  pullFromServer()
   
-//   // 启动定时同步
-//   startSyncTimer()
+  // 启动定时同步
+  startSyncTimer()
   
-//   // 启动网络重连检测
-//   startNetworkRetry()
+  // 监听网络状态变化
+  window.addEventListener('online', handleOnline)
+  window.addEventListener('offline', handleOffline)
+})
+
+// 组件卸载时清理
+onUnmounted(() => {
+  if (syncTimer) {
+    clearInterval(syncTimer)
+  }
   
-//   // 监听网络状态变化
-//   window.addEventListener('online', handleOnline)
-//   window.addEventListener('offline', handleOffline)
-// })
+  if (networkRetryTimer) {
+    clearInterval(networkRetryTimer)
+  }
+  
+  window.removeEventListener('online', handleOnline)
+  window.removeEventListener('offline', handleOffline)
+})
 
 // 网络状态变化监听
 const handleOnline = () => {
@@ -260,6 +271,5 @@ const handleOffline = () => {
   console.log('网络已断开')
   updateSyncStatus('网络断开', 'bg-red-400')
 }
-
 
 </script>
