@@ -9,18 +9,19 @@
 <template lang="pug">
 main
   article.flex-col-between.p-4.pt-8
-    draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='id', :list='store.todos', :animation='200')
-      template(#item='{ element, index }')
-        li.flex-row-between.h-5(v-if='!element.deleted')
-          input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox')
-          input.mr-2.w-full.bg-transparent.text-sm.outline-none(
-            type='text',
-            v-model='element.title',
-            :class='element.checked ? "line-through text-secondary" : "text-primary"')
-          DeleteSVG.btn-svg.w-6.text-rose-400(class='hover:text-rose-500', @click='remove(index)')
-          MoveSVG.btn-svg.handle.w-7.text-purple-400(class='hover:text-purple-500')
+    .flex-1.overflow-y-auto
+      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='id', :list='store.todos', :animation='200')
+        template(#item='{ element, index }')
+          li.flex-row-between.h-5(v-if='!element.deleted')
+            input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox')
+            input.mr-2.w-full.bg-transparent.text-sm.outline-none(
+              type='text',
+              v-model='element.title',
+              :class='element.checked ? "line-through text-secondary" : "text-primary"')
+            DeleteSVG.btn-svg.w-6.text-rose-400(class='hover:text-rose-500', @click='remove(index)')
+            MoveSVG.btn-svg.handle.w-7.text-purple-400(class='hover:text-purple-500')
     // 同步状态指示器
-    .flex-row-center.mt-10.text-xs.text-gray-500
+    .flex-row-center.mt-auto.text-xs.text-gray-500
       .flex-row-center.gap-1
         .w-2.h-2.rounded-full(:class="syncStatus.color")
         span {{ syncStatus.text }}
