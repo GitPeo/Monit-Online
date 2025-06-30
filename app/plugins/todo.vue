@@ -39,7 +39,7 @@ main
 import { ref, onMounted, onUnmounted } from 'vue'
 import draggable from 'vuedraggable'
 
-import { storage } from '~/lib/storage'
+import { storage, get } from '~/lib/storage'
 
 import AddSVG from '@/assets/plugin/todo/add.svg'
 import DeleteSVG from '@/assets/plugin/todo/delete.svg'
@@ -63,13 +63,10 @@ const store = storage({
   todos: [
     { title: '吃饭', checked: false, tid: 1, order: "a", version: 1, deleted: false },
     { title: '睡觉', checked: false, tid: 2, order: "b", version: 2, deleted: false }
-  ],
-  config: {
-    baseUrl: '',
-    post: '',
-    token: ''
-  }
+  ]
 })
+
+const config = get("config","server")
 
 // 检查网络连接
 const isOnline = () => {
@@ -113,7 +110,6 @@ const add = () => {
   pushToServer()
   // 清空代办消息
   todo.value = ''
- 
 }
 
 // 删除代办
@@ -129,8 +125,8 @@ const getHeaders = () => {
     'Content-Type': 'application/json'
   }
   
-  if (store.config.token) {
-    headers['Authorization'] = `Bearer ${store.config.token}`
+  if (config.token) {
+    headers['Authorization'] = `Bearer ${config.token}`
   }
   
   return headers
@@ -138,9 +134,8 @@ const getHeaders = () => {
 
 // 从服务端拉取数据
 const pullFromServer = async () => {
-  const config = store.config
   
-  if (!config.baseUrl || !config.token) {
+  if (!config.url || !config.post || !config.token) {
     updateSyncStatus('配置缺失', 'bg-yellow-400')
     return false
   }
@@ -154,7 +149,7 @@ const pullFromServer = async () => {
   try {
     updateSyncStatus('同步中...', 'bg-blue-400')
     
-    const response = await fetch(`http://${config.baseUrl}:${config.post}/api/fetch`, {
+    const response = await fetch(`http://${config.url}:${config.post}/api/fetch`, {
       method: 'GET',
       headers: getHeaders()
     })
@@ -181,9 +176,8 @@ const pullFromServer = async () => {
 
 // 推送数据到服务端
 const pushToServer = async () => {
-  const config = store.config
   
-  if (!config.baseUrl || !config.token) {
+  if (!config.url || !config.post || !config.token) {
     updateSyncStatus('配置缺失', 'bg-yellow-400')
     return false
   }
@@ -197,7 +191,7 @@ const pushToServer = async () => {
   try {
     updateSyncStatus('推送中...', 'bg-blue-400')
     console.log(JSON.stringify(store.todos))
-    const response = await fetch(`http://${config.baseUrl}:${config.post}/api/update`, {
+    const response = await fetch(`http://${config.url}:${config.post}/api/update`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(store.todos)

@@ -12,8 +12,40 @@
   <!-- 页面内容 -->
   <article class="flex-col-between p-3 pt-8">
     <section class="scrollable space-y-2">
+      <!-- baseUrl 配置 -->
+      <p class="flex-row-between w-full gap-2">
+        <span class="text-sm text-gray-600">url:</span>
+        <input 
+          v-model="store.server.url"
+          type="text" 
+          :placeholder="store.server.url ? `已保存: ${store.server.url}` : '请输入 Base URL'"
+          class="input input-bordered w-2/3 text-gray-500 rounded-lg text-xs h-6 pl-2"
+        />
+      </p>
+      
+      <!-- post 配置 -->
+      <p class="flex-row-between w-full gap-2">
+        <span class="text-sm text-gray-600">port:</span>
+        <input 
+          v-model="store.server.post"
+          type="text" 
+          :placeholder="store.server.post ? `已保存: ${store.server.post}` : '请输入 Post'"
+          class="input input-bordered w-2/3 text-gray-500 rounded-lg text-xs h-6 pl-2"
+        />
+      </p>
+      
+      <!-- token 配置 -->
+      <p class="flex-row-between w-full gap-2">
+        <span class="text-sm text-gray-600">token:</span>
+        <input 
+          v-model="store.server.token"
+          type="password" 
+          :placeholder="store.server.token ? `已保存: ${'*'.repeat(store.server.token.length)}` : '请输入 Token'"
+          class="input input-bordered w-2/3 text-gray-500 rounded-lg text-xs h-6 pl-2"
+        />
+      </p>
       <!-- 插件操作 -->
-      <p class="flex-row-between gap-2">
+      <p class="flex-row-between gap-2 pt-5">
         <button class="btn btn-md btn-blue basis-2/3" @click="sendEvent('plugin-create', pluginNames)">全部开启</button>
         <button
           v-if="state.switch"
@@ -85,7 +117,12 @@ const state = reactive({
 // 存储数据
 const store = storage({
     auto: false,
-    boot: []
+    boot: [],
+    server: {
+      url: '',
+      post: '',
+      token: ''
+    }
   },
   {
     // 自启修改
