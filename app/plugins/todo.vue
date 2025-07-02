@@ -10,7 +10,7 @@
 main
   article.flex-col-between.p-4.pt-8
     .flex-1.overflow-y-auto
-      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='id', :list='store.todos', :animation='200')
+      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='tid', :list='store.todos', :animation='200')
         template(#item='{ element, index }')
           li.flex-row-between.h-5(v-if='!element.deleted')
             input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox')
@@ -87,16 +87,13 @@ const updateLastSyncTime = () => {
 // 同步定时器
 let syncTimer = null
 
-// 网络重连检测
-let networkRetryTimer = null
-
-// 是否需要重试同步
-const needRetrySync = ref(false)
-
 // 增加代办
 const add = () => {
   // 判断消息为空
-  if (todo.value.length === 0) return
+  if (todo.value.length === 0){
+    pullFromServer()
+    return
+  }
   // 插入代办列表
   store.todos.push({
     title: todo.value,
@@ -234,10 +231,6 @@ onMounted(() => {
   
   // 启动定时同步
   startSyncTimer()
-  
-  // 监听网络状态变化
-  window.addEventListener('online', handleOnline)
-  window.addEventListener('offline', handleOffline)
 })
 
 // 组件卸载时清理
@@ -245,26 +238,6 @@ onUnmounted(() => {
   if (syncTimer) {
     clearInterval(syncTimer)
   }
-  
-  if (networkRetryTimer) {
-    clearInterval(networkRetryTimer)
-  }
-  
-  window.removeEventListener('online', handleOnline)
-  window.removeEventListener('offline', handleOffline)
 })
-
-// 网络状态变化监听
-const handleOnline = () => {
-  console.log('网络已连接')
-  if (needRetrySync.value) {
-    pullFromServer()
-  }
-}
-
-const handleOffline = () => {
-  console.log('网络已断开')
-  updateSyncStatus('网络断开', 'bg-red-400')
-}
 
 </script>
