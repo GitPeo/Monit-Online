@@ -10,7 +10,7 @@
 main
   article.flex-col-between.p-4.pt-8
     .flex-1.overflow-y-auto
-      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='tid', :list='store.todos', :animation='200')
+      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='tid', :list='store.todos', :animation='200',@change='dragChange')
         template(#item='{ element, index }')
           li.flex-row-between.h-5(v-if='!element.deleted')
             input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox')
@@ -61,8 +61,8 @@ const lastSyncTime = ref('')
 const store = storage({
   // 代办数据
   todos: [
-    { title: '吃饭', checked: false, tid: 1, order: "a", version: 1, deleted: false },
-    { title: '睡觉', checked: false, tid: 2, order: "b", version: 2, deleted: false }
+    { title: '吃饭', checked: false, tid: 1, order: 1.0, version: 1, deleted: false },
+    { title: '睡觉', checked: false, tid: 2, order: 2.0, version: 2, deleted: false }
   ]
 })
 
@@ -99,7 +99,7 @@ const add = () => {
     title: todo.value,
     checked: false,
     tid: Date.now(),
-    order: "e",
+    order: store.todos.length > 1 ? store.todos[store.todos.length - 2].order + 10.0 : 200.0,
     version: Date.now(),
     deleted: false
   }) 
@@ -107,6 +107,20 @@ const add = () => {
   pushToServer()
   // 清空代办消息
   todo.value = ''
+}
+
+// 拖拽待办
+const dragChange = (evt) => {
+  var index = evt.moved.newIndex
+  if(index == 0){
+    store.todos[index].order = store.todos[1].order - 10.0
+  }else if(index == store.todos.length-1){
+    store.todos[index].order = store.todos[index - 1].order + 10.0
+  }else{
+    store.todos[index].order = (store.todos[index + 1].order - store.todos[index - 1].order) * Math.random() / 2 + 2.0
+  }
+  store.todos[index].version = Date.now()
+  pushToServer()
 }
 
 // 删除代办
@@ -139,7 +153,6 @@ const pullFromServer = async () => {
 
   if (!isOnline()) {
     updateSyncStatus('网络断开', 'bg-red-400')
-    needRetrySync.value = true
     return false
   }
 
@@ -158,7 +171,6 @@ const pullFromServer = async () => {
       }
       updateSyncStatus('同步成功', 'bg-green-400')
       updateLastSyncTime()
-      needRetrySync.value = false
       return true
     } else {
       throw new Error(`HTTP ${response.status}`)
@@ -166,7 +178,6 @@ const pullFromServer = async () => {
   } catch (error) {
     console.error('拉取失败:', error)
     updateSyncStatus('拉取失败', 'bg-red-400')
-    needRetrySync.value = true
     return false
   }
 }
@@ -181,7 +192,6 @@ const pushToServer = async () => {
 
   if (!isOnline()) {
     updateSyncStatus('网络断开', 'bg-red-400')
-    needRetrySync.value = true
     return false
   }
 
@@ -198,7 +208,6 @@ const pushToServer = async () => {
       pullFromServer()
       updateSyncStatus('同步成功', 'bg-green-400')
       updateLastSyncTime()
-      needRetrySync.value = false
       return true
     } else {
       throw new Error(`HTTP ${response.status}`)
@@ -206,7 +215,6 @@ const pushToServer = async () => {
   } catch (error) {
     console.error('同步失败:', error)
     updateSyncStatus('同步失败', 'bg-red-400')
-    needRetrySync.value = true
     return false
   }
 }
