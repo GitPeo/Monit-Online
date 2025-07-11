@@ -13,7 +13,7 @@ main
       draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='tid', :list='store.todos', :animation='200',@change='dragChange')
         template(#item='{ element, index }')
           li.flex-row-between.h-5(v-if='!element.deleted')
-            input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox')
+            input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox', @click='pushToServer()')
             input.mr-2.w-full.bg-transparent.text-sm.outline-none(
               type='text',
               v-model='element.title',
