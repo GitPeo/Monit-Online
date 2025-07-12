@@ -113,11 +113,11 @@ const add = () => {
 const dragChange = (evt) => {
   var index = evt.moved.newIndex
   if(index == 0){
-    store.todos[index].order = store.todos[1].order + 10.0
+    store.todos[index].order = store.todos[1].order - 10.0
   }else if(index == store.todos.length-1){
-    store.todos[index].order = store.todos[index - 1].order - 10.0
+    store.todos[index].order = store.todos[index - 1].order + 10.0
   }else{
-    store.todos[index].order = (store.todos[index - 1].order - store.todos[index + 1].order) * Math.random() / 2 + 2.0 + store.todos[index + 1].order
+    store.todos[index].order = (store.todos[index + 1].order - store.todos[index - 1].order) * Math.random() / 2 + 2.0 + store.todos[index - 1].order
   }
   store.todos[index].version = Date.now()
   pushToServer()
