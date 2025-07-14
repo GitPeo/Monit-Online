@@ -117,7 +117,7 @@ const dragChange = (evt) => {
   }else if(index == store.todos.length-1){
     store.todos[index].order = store.todos[index - 1].order + 10.0
   }else{
-    store.todos[index].order = (store.todos[index + 1].order - store.todos[index - 1].order) * Math.random() / 2 + 2.0 + store.todos[index - 1].order
+    store.todos[index].order = (store.todos[index + 1].order - store.todos[index - 1].order) * (Math.random() / 2 + 0.1) + store.todos[index - 1].order
   }
   store.todos[index].version = Date.now()
   pushToServer()
