@@ -10,10 +10,10 @@
 main
   article.flex-col-between.p-4.pt-8
     .flex-1.overflow-y-auto
-      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='tid', :list='store.todos', :animation='200',@change='dragChange')
+      draggable.scrollable.space-y-1(tag='ul', handle='.handle', item-key='tid', :list='store.todos', :animation='200', @change='dragChange')
         template(#item='{ element, index }')
-          li.flex-row-between.h-5(v-if='!element.deleted')
-            input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox', @click='pushToServer()')
+          li.flex-row-between.h-5(v-if='!element.deleted', @change='updateTodo(index)')
+            input.mr-2.accent-purple-500(v-model='element.checked', type='checkbox')
             input.mr-2.w-full.bg-transparent.text-sm.outline-none(
               type='text',
               v-model='element.title',
@@ -119,6 +119,11 @@ const dragChange = (evt) => {
   }else{
     store.todos[index].order = (store.todos[index + 1].order - store.todos[index - 1].order) * (Math.random() / 2 + 0.1) + store.todos[index - 1].order
   }
+  updateTodo(index)
+}
+
+// todo修改更新
+const updateTodo = (index) => {
   store.todos[index].version = Date.now()
   pushToServer()
 }
@@ -126,8 +131,7 @@ const dragChange = (evt) => {
 // 删除代办
 const remove = (index) => {
   store.todos[index].deleted = true
-  store.todos[index].version = Date.now()
-  pushToServer()
+  updateTodo(index)
 }
 
 // 生成请求头
